@@ -9,8 +9,8 @@ title: z.string().min(2),
 description: z.string().optional(),
 assignee: z.string().optional(),
 priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
-startDate: z.string().datetime().optional(),
-dueDate: z.string().datetime().optional(),
+startDate: z.string().optional(),
+dueDate: z.string().optional(),
 dependencies: z.array(z.string()).optional()
 })
 
@@ -19,6 +19,7 @@ const createTask = async (req, res) => {
 try
  {
         const body = TaskInput.parse(req.body)
+        console.log('Creating task with data:', body);
         const project = await Project.findById(body.project)
         if (!project) return res.status(404).json({ error: 'Project not found' })
         const task = await Task.create({

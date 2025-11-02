@@ -20,8 +20,10 @@ const createNewProject = async (req , res) => {
 
 const getAllProjects = async (req , res) => {
     try {
+        console.log('Fetching all projects');
         const Projects = await Project.find({}).sort('-createdAt');
         res.status(200).json(Projects);
+        console.log('Fetched all projects successfully');
     }
     catch(err){
         return res.status(500).json({error: 'Server error' , details: err.message});

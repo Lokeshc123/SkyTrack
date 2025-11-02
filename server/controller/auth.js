@@ -52,8 +52,22 @@ const loginUser = async (req, res) => {
     }
 }
 
+const getUsersBasedOnRole = async (req, res) => {
+  try {
+    const { role } = req.query; // ← query parameter
+    const filter = {};
+
+    if (role) filter.role = role; // optional filter if provided
+
+    const users = await User.find(filter).select('name email role');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+}
 
 module.exports = {
     registerNewUser,
-    loginUser
+    loginUser,
+    getUsersBasedOnRole
 }
