@@ -7,6 +7,8 @@ import Card from '../components/Card'
 import StatusBadge from '../components/StatusBadge'
 import Confidence from '../components/Confidence'
 import EmptyState from '../components/EmptyState'
+import Button from '../components/Button'
+import DailyUpdateModal from '../components/DailyUpdateModal'
 
 // ---------- Styled Components ----------
 
@@ -15,6 +17,9 @@ const PageWrap = styled.div`
   flex-direction: column;
   gap: 24px;
   min-height: 80vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 32px 72px;
 `
 
 const TopBar = styled.div`
@@ -127,6 +132,7 @@ export default function MyTasks() {
   const [loading, setLoading] = useState(true)
   const [status, setStatus] = useState('all')
   const [query, setQuery] = useState('')
+  const [showUpdateModal, setShowUpdateModal] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -157,10 +163,11 @@ export default function MyTasks() {
       <TopBar>
         <Title>My Tasks</Title>
         <Tools>
+          <Button onClick={() => setShowUpdateModal(true)}>Daily Update</Button>
           <Input
             placeholder="Search tasks..."
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
           />
           <Select value={status} onChange={e => setStatus(e.target.value)}>
             <option value="all">All</option>
@@ -227,6 +234,7 @@ export default function MyTasks() {
           </Table>
         </TableWrap>
       </Card>
+      {showUpdateModal && <DailyUpdateModal onClose={() => setShowUpdateModal(false)} />}
     </PageWrap>
   )
 }

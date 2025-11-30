@@ -7,7 +7,13 @@ const Card = styled.div`
   background: var(--card); border: 1px solid var(--border);
   border-radius: 14px; padding: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.04);
 `
-const Grid = styled.div`display: grid; gap: 16px;`
+const Grid = styled.div`
+  display: grid; 
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 32px 72px;
+`
 const Row = styled.div`display: grid; gap: 10px; grid-template-columns: 1fr 160px 1fr auto;`
 const Input = styled.input`border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;`
 const Table = styled.table`width: 100%; border-collapse: collapse; font-size: 14px;`
@@ -68,7 +74,7 @@ export default function Projects() {
               <tr key={p._id}>
                 <Td>{p.name}</Td>
                 <Td>{p.key}</Td>
-                <Td>{String(p.owner)}</Td>
+                <Td>{p.owner?.name || 'Unknown'}</Td>
                 <Td className="capitalize">{p.status}</Td>
               </tr>
             ))}

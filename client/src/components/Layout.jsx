@@ -1,34 +1,30 @@
 import styled from 'styled-components'
 import { Link } from 'react-router-dom'
+import { FaRobot, FaUsers, FaColumns, FaUsersCog } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
 import Logo from './Logo'
+import Notifications from './Notifications'
 // src/components/Layout.jsx
 const Shell = styled.div`
   min-height: 100vh;
   position: relative;
-  /* Safety: a fixed gradient layer behind everything */
-  &::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background: var(--bg-grad);
-    pointer-events: none;
-  }
+  background: #f8fafc;
 `
 const Header = styled.header`
-  /* keep this translucent so gradient shows through */
-  backdrop-filter: blur(16px);
-  background: rgba(255,255,255,0.65);
-  /* ...rest unchanged */
+  background: #f8fafc;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid #e2e8f0;
 `
 
 
-/* Wider, fluid container */
+/* Full width container for header */
 const Container = styled.div`
-  width: min(1200px, 96vw);
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 32px;
 `
 
 const HeaderInner = styled.div`
@@ -49,30 +45,60 @@ const Nav = styled.nav`
     position: relative; color: #0f172a; font-weight: 600; text-decoration: none;
     transition: color .2s ease;
   }
-  a::after {
+  a.nav-link::after {
     content: ""; position: absolute; left:0; right:0; bottom:-4px; height:2px;
     background: linear-gradient(90deg,#60a5fa,#a78bfa); opacity:0; transform:scaleX(0);
     transition: transform .25s ease, opacity .25s ease;
   }
-  a:hover { color:#1d4ed8; }
-  a:hover::after { opacity:1; transform:scaleX(1); }
+  a.nav-link:hover { color:#1d4ed8; }
+  a.nav-link:hover::after { opacity:1; transform:scaleX(1); }
 
   span { color: var(--muted); font-weight: 500; }
-
-  button {
-    border: 1px solid rgba(255,255,255,0.55);
-    background: linear-gradient(145deg,#ffffff 0%,#f8fafc 100%);
-    border-radius: 12px; padding: 9px 14px; font-weight: 700; cursor: pointer;
-    box-shadow: 0 2px 4px rgba(15,23,42,0.1); transition: all .2s ease;
-  }
-  button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,23,42,0.12); }
 `
 
-/* Wider main content to match header */
+const LogoutButton = styled.button`
+  border: 1px solid rgba(255,255,255,0.55);
+  background: linear-gradient(145deg,#ffffff 0%,#f8fafc 100%);
+  border-radius: 12px; padding: 9px 14px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 2px 4px rgba(15,23,42,0.1); transition: all .2s ease;
+  &:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,23,42,0.12); }
+`
+
+const NewTaskButton = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  padding: 9px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: #fff;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-size: 14px;
+  
+  &:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
+    color: white;
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`
+
+/* Full width main content */
 const Main = styled.main`
-  width: min(1200px, 96vw);
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 32px 16px 72px;
+  padding: 0;
+  background: #f8fafc;
 `
 
 export default function Layout({ children }) {
@@ -89,30 +115,38 @@ export default function Layout({ children }) {
             <Nav>
   {user && (
     <>
-      <Link to="/tasks">My Tasks</Link>
-      <Link to="/projects">Projects</Link>
+      <Link to="/tasks" className="nav-link">My Tasks</Link>
+      <Link to="/board" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <FaColumns size={14} /> Board
+      </Link>
+      <Link to="/projects" className="nav-link">Projects</Link>
+      <Link to="/ai" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <FaRobot size={14} /> AI Insights
+      </Link>
+      {['manager', 'admin'].includes(user.role) && (
+        <Link to="/manager" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <FaUsers size={14} /> Manager
+        </Link>
+      )}
+      {user.role === 'admin' && (
+        <Link to="/admin" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <FaUsersCog size={14} /> Admin
+        </Link>
+      )}
+      
+      <div style={{ width: 1, height: 24, background: '#e2e8f0', margin: '0 4px' }} />
+      
+      <Notifications />
 
       {/* Add new task button here */}
-      <Link to="/tasks/new">
-        <button
-          style={{
-            border: '1px solid var(--border)',
-            padding: '8px 14px',
-            borderRadius: '10px',
-            fontWeight: 600,
-            background: 'linear-gradient(90deg, #2563eb, #7c3aed)',
-            color: '#fff',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          + New Task
-        </button>
-      </Link>
+      <NewTaskButton to="/tasks/new">
+        + New Task
+      </NewTaskButton>
 
-      <span>{user.name} · {user.role}</span>
-      <button onClick={logout}>Logout</button>
+      <div style={{ width: 1, height: 24, background: '#e2e8f0', margin: '0 4px' }} />
+
+      <span>{user.name}</span>
+      <LogoutButton onClick={logout}>Logout</LogoutButton>
     </>
   )}
 </Nav>

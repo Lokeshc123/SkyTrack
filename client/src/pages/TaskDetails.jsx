@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import styled from 'styled-components'
+import { FaChartLine } from 'react-icons/fa'
 import api from '../lib/api'
 import StatusBadge from '../components/StatusBadge'
 import Confidence from '../components/Confidence'
+import AssigneeSelect from '../components/AssigneeSelect'
+import { useAuth } from '../context/AuthContext'
+
 
 /* ===== Calm tokens ===== */
 const SURFACE = '#ffffff'
@@ -111,63 +115,7 @@ const RiskBadge = styled.span`
 const fmtDate = d => (d ? new Date(d).toLocaleDateString() : '—')
 const daysBetween = (a, b) => Math.ceil((b - a) / (1000*60*60*24))
 
-function computeInsights(task) {
-  const now = new Date()
-  const p = Number(task?.progress ?? 0)
-  const due = task?.dueDate ? new Date(task.dueDate) : null
-  const daysLeft = due ? Math.max(0, daysBetween(now, due)) : null
-
-  // Naive velocity guess (fallback to 10%/day if no history)
-  const assumedVelocity = Math.max(1, Math.min(20, Math.round((p || 10) / Math.max(1, (task?.updatesCount || 1))))) // %
-  const remaining = Math.max(0, 100 - p)
-  const etaDays = Math.ceil(remaining / Math.max(1, assumedVelocity))
-
-  let risk = 'Low'
-  if (due) {
-    if (p >= 100) risk = 'Low'
-    else if (daysLeft === 0 && p < 100) risk = 'High'
-    else if (remaining / Math.max(1, daysLeft) > 12) risk = 'High'     // need >12%/day
-    else if (remaining / Math.max(1, daysLeft) > 6) risk = 'Medium'    // need >6%/day
-    else risk = 'Low'
-  } else {
-    risk = p < 30 ? 'Medium' : 'Low'
-  }
-
-  const riskColors = {
-    Low:    { bg:'#ecfdf5', bd:'#a7f3d0', fg:'#065f46' },
-    Medium: { bg:'#fffbeb', bd:'#fde68a', fg:'#92400e' },
-    High:   { bg:'#fef2f2', bd:'#fecaca', fg:'#991b1b' },
-  }
-
-  const blockers = Array.isArray(task?.blockers) ? task.blockers : []
-  const reasons = []
-  if (due) reasons.push(`${daysLeft} day${daysLeft===1?'':'s'} left`)
-  reasons.push(`${p}% complete`)
-  if (blockers.length) reasons.push(`${blockers.length} blocker${blockers.length>1?'s':''}`)
-
-  const recs = []
-  if (risk === 'High') {
-    recs.push('Free up reviewer or reassign a subtask')
-    recs.push('Negotiate due date extension')
-  } else if (risk === 'Medium') {
-    recs.push('Schedule daily 15-min unblock check')
-    recs.push('Focus on the highest-impact subtask')
-  } else {
-    recs.push('Keep current plan; review again tomorrow')
-  }
-
-  const eta = new Date()
-  eta.setDate(eta.getDate() + etaDays)
-
-  return {
-    summary: `You are ${p}% complete.${due ? ` ${daysLeft} day${daysLeft===1?'':'s'} to due.` : ''}`,
-    risk, riskColor: riskColors[risk],
-    reasons,
-    recommendations: recs,
-    etaDays,
-    etaDate: eta,
-  }
-}
+// computeInsights removed
 
 /* ===== Component ===== */
 export default function TaskDetails() {
@@ -177,6 +125,7 @@ export default function TaskDetails() {
   const [progress, setProgress] = useState('')
   const [blockers, setBlockers] = useState('')
   const [err, setErr] = useState('')
+  const [aiAnalysis, setAiAnalysis] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -190,7 +139,17 @@ export default function TaskDetails() {
           const r = await api.get('/api/tasks')
           item = r.data.find(t => t._id === id) || null
         }
-        if (!cancelled) setTask(item)
+        if (!cancelled) {
+            setTask(item)
+            if (item) {
+                try {
+                    const aiRes = await api.get(`/api/notifications/task-confidence/${id}`)
+                    setAiAnalysis(aiRes.data)
+                } catch (e) {
+                    console.error("Failed to fetch AI analysis", e)
+                }
+            }
+        }
       } catch {
         if (!cancelled) setTask(null)
       }
@@ -217,6 +176,10 @@ export default function TaskDetails() {
       const res = await api.post('/api/daily-updates/new-update', payload)
       setTask(res.data.task)
       setNote(''); setProgress(''); setBlockers('')
+      
+      // Refresh AI analysis
+      const aiRes = await api.get(`/api/notifications/task-confidence/${id}`)
+      setAiAnalysis(aiRes.data)
     } catch (error) {
       setErr(error?.response?.data?.error || 'Failed to post update')
     }
@@ -224,7 +187,17 @@ export default function TaskDetails() {
 
   if (!task) return <div>Loading…</div>
 
-  const ai = computeInsights(task)
+  const getRiskColor = (risk) => {
+      const colors = {
+        Low:    { bg:'#ecfdf5', bd:'#a7f3d0', fg:'#065f46' },
+        Medium: { bg:'#fffbeb', bd:'#fde68a', fg:'#92400e' },
+        High:   { bg:'#fef2f2', bd:'#fecaca', fg:'#991b1b' },
+        Critical: { bg:'#fef2f2', bd:'#fecaca', fg:'#991b1b' }
+      }
+      return colors[risk] || colors.Low
+  }
+
+  const riskColor = aiAnalysis ? getRiskColor(aiAnalysis.riskLevel) : getRiskColor('Low')
 
   return (
     <Page>
@@ -238,48 +211,74 @@ export default function TaskDetails() {
             <Chip>Priority: <strong style={{ marginLeft:4, textTransform:'capitalize' }}>{task.priority}</strong></Chip>
             <Chip>Progress: <strong style={{ marginLeft:4 }}>{task.progress ?? 0}%</strong></Chip>
             <Chip>Due: <strong style={{ marginLeft:4 }}>{fmtDate(task.dueDate)}</strong></Chip>
-            <Chip><Confidence value={task.aiConfidence ?? 0} /></Chip>
+            <Chip><Confidence value={aiAnalysis?.score ?? task.aiConfidence ?? 0} /></Chip>
           </MetaRow>
 
           <Sub>Project: {task.project?.name || '—'} · Assignee: {task.assignee?.name || 'You'}</Sub>
 
           <Section>{task.description || 'No description.'}</Section>
+          
+          <Link 
+            to={`/tasks/${id}/journey`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              marginTop: 16,
+              padding: '10px 16px',
+              background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+              color: 'white',
+              borderRadius: 10,
+              fontSize: 14,
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'all 0.2s'
+            }}
+          >
+            <FaChartLine /> View Progress Journey
+          </Link>
         </Card>
 
-        {/* AI Insights fills that blank area */}
-        <InsightsCard>
-          <H3>AI Insights</H3>
-          <Sub style={{ marginBottom: 8 }}>{ai.summary}</Sub>
+        {/* AI Insights */}
+        {aiAnalysis && (
+            <InsightsCard>
+            <H3>AI Insights</H3>
+            <Sub style={{ marginBottom: 8 }}>
+                {aiAnalysis.analysis.progressDelta < 0 
+                    ? `You are ${Math.abs(aiAnalysis.analysis.progressDelta)}% behind schedule.` 
+                    : `You are on track.`}
+                {' '}{aiAnalysis.analysis.daysRemaining} days remaining.
+            </Sub>
 
-          <Row>
-            <div>
-              <Sub style={{ marginBottom: 6 }}>Delivery risk</Sub>
-              <RiskBadge bg={ai.riskColor.bg} bd={ai.riskColor.bd} fg={ai.riskColor.fg}>
-                {ai.risk}
-              </RiskBadge>
-              <ul style={{ margin: '10px 0 0', padding: 0, listStyle: 'none' }}>
-                {ai.reasons.map((r, i) => (
-                  <li key={i} style={{ color: MUTED, fontSize: 13, marginBottom: 4 }}>• {r}</li>
-                ))}
-              </ul>
+            <Row>
+                <div>
+                <Sub style={{ marginBottom: 6 }}>Delivery risk</Sub>
+                <RiskBadge bg={riskColor.bg} bd={riskColor.bd} fg={riskColor.fg}>
+                    {aiAnalysis.riskLevel}
+                </RiskBadge>
+                <ul style={{ margin: '10px 0 0', padding: 0, listStyle: 'none' }}>
+                    <li style={{ color: MUTED, fontSize: 13, marginBottom: 4 }}>• Time Score: {aiAnalysis.factors.timeScore}/25</li>
+                    <li style={{ color: MUTED, fontSize: 13, marginBottom: 4 }}>• Blocker Score: {aiAnalysis.factors.blockerScore}/25</li>
+                </ul>
+                </div>
+
+                <div>
+                <Sub style={{ marginBottom: 6 }}>Analysis</Sub>
+                <Chip style={{ marginBottom: 6 }}>
+                    {aiAnalysis.analysis.blockerCount} Blockers
+                </Chip>
+                <div style={{ color: MUTED, fontSize: 13 }}>Expected Progress: {aiAnalysis.analysis.expectedProgress}%</div>
+                </div>
+            </Row>
+
+            <div style={{ marginTop: 10 }}>
+                <Sub style={{ marginBottom: 6 }}>Recommendations</Sub>
+                <ul style={{ margin: 0 }}>
+                {aiAnalysis.recommendations.map((r, i) => <Bullet key={i}>{r.message}</Bullet>)}
+                </ul>
             </div>
-
-            <div>
-              <Sub style={{ marginBottom: 6 }}>Projected ETA</Sub>
-              <Chip style={{ marginBottom: 6 }}>
-                ~{ai.etaDays} day{ai.etaDays === 1 ? '' : 's'}
-              </Chip>
-              <div style={{ color: MUTED, fontSize: 13 }}>{ai.etaDate.toLocaleDateString()}</div>
-            </div>
-          </Row>
-
-          <div style={{ marginTop: 10 }}>
-            <Sub style={{ marginBottom: 6 }}>Recommendations</Sub>
-            <ul style={{ margin: 0 }}>
-              {ai.recommendations.map((r, i) => <Bullet key={i}>{r}</Bullet>)}
-            </ul>
-          </div>
-        </InsightsCard>
+            </InsightsCard>
+        )}
       </div>
 
       {/* RIGHT: Daily update */}

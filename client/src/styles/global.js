@@ -26,7 +26,7 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     color: var(--text);
-    background: var(--bg-grad);   /* <<< gradient everywhere */
+    background: #f8fafc;
   }
 
   a { color: inherit; text-decoration: none; }

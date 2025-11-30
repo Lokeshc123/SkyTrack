@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
+import { FaRobot, FaClock, FaLightbulb } from 'react-icons/fa'
 import api from '../lib/api'
 import Card from '../components/Card'
 
 /* ---------- Layout ---------- */
 const Page = styled.div`
   width: min(920px, 92vw);
-  margin: 24px auto 80px;
+  margin: 0 auto;
+  padding: 32px 32px 72px;
   display: grid;
   gap: 18px;
 `
@@ -76,6 +78,120 @@ const Primary = styled(Button)`
 `
 const Error = styled.div` color:#dc2626; font-size:12px; min-height:16px; `
 
+/* ---------- AI Estimation Card ---------- */
+const AICard = styled.div`
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 8px;
+`
+
+const AIHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+`
+
+const AIIcon = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+`
+
+const AITitle = styled.h3`
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+`
+
+const AISubtitle = styled.p`
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #64748b;
+`
+
+const EstimateButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`
+
+const EstimateResult = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+`
+
+const EstimateStat = styled.div`
+  background: white;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+`
+
+const StatValue = styled.div`
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+`
+
+const StatLabel = styled.div`
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+  text-transform: uppercase;
+`
+
+const AISuggestion = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: white;
+  border-radius: 10px;
+  margin-top: 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+  
+  svg {
+    color: #f59e0b;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+`
+
 export default function NewTask() {
   const [projects, setProjects] = useState([])
   const [users, setUsers] = useState([])
@@ -92,6 +208,10 @@ export default function NewTask() {
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  
+  // AI Estimation state
+  const [estimating, setEstimating] = useState(false)
+  const [aiEstimate, setAiEstimate] = useState(null)
 
   useEffect(() => {
     (async () => {
@@ -110,6 +230,29 @@ export default function NewTask() {
   }, [])
 
   const canSubmit = useMemo(() => title.trim().length >= 3, [title])
+  const canEstimate = useMemo(() => title.trim().length >= 3, [title])
+
+  const handleAIEstimate = async () => {
+    if (!canEstimate) return
+    setEstimating(true)
+    try {
+      const res = await api.post('/api/ai/estimate', {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        priority,
+        assigneeId: assignee || undefined
+      })
+      setAiEstimate(res.data)
+      // Auto-fill estimated hours if returned
+      if (res.data?.estimatedHours && !estimatedHours) {
+        setEstimatedHours(String(res.data.estimatedHours))
+      }
+    } catch (err) {
+      console.error('AI estimation failed:', err)
+    } finally {
+      setEstimating(false)
+    }
+  }
 
   const onSubmit = async (e) => {
     e.preventDefault()
@@ -136,7 +279,7 @@ export default function NewTask() {
   const reset = () => {
     setTitle(''); setDescription(''); setProject(''); setAssignee('')
     setPriority('medium'); setStatus('todo'); setStartDate(''); setDueDate('')
-    setEstimatedHours(''); setError('')
+    setEstimatedHours(''); setError(''); setAiEstimate(null)
   }
 
   return (
@@ -228,6 +371,56 @@ export default function NewTask() {
             </Label>
             <div />
           </Group>
+
+          {/* AI Estimation Section */}
+          <AICard>
+            <AIHeader>
+              <AIIcon>
+                <FaRobot />
+              </AIIcon>
+              <div>
+                <AITitle>AI Task Estimation</AITitle>
+                <AISubtitle>Get intelligent time estimates based on task details</AISubtitle>
+              </div>
+            </AIHeader>
+            
+            <EstimateButton 
+              type="button" 
+              onClick={handleAIEstimate}
+              disabled={!canEstimate || estimating}
+            >
+              <FaRobot />
+              {estimating ? 'Analyzing...' : 'Get AI Estimate'}
+            </EstimateButton>
+            
+            {aiEstimate && (
+              <>
+                <EstimateResult>
+                  <EstimateStat>
+                    <StatValue>{aiEstimate.estimatedHours || aiEstimate.estimate?.hours || '—'}</StatValue>
+                    <StatLabel>Hours</StatLabel>
+                  </EstimateStat>
+                  <EstimateStat>
+                    <StatValue>{aiEstimate.confidence || aiEstimate.estimate?.confidence || '—'}%</StatValue>
+                    <StatLabel>Confidence</StatLabel>
+                  </EstimateStat>
+                  <EstimateStat>
+                    <StatValue style={{ textTransform: 'capitalize' }}>
+                      {aiEstimate.complexity || aiEstimate.estimate?.complexity || '—'}
+                    </StatValue>
+                    <StatLabel>Complexity</StatLabel>
+                  </EstimateStat>
+                </EstimateResult>
+                
+                {(aiEstimate.suggestion || aiEstimate.estimate?.rationale) && (
+                  <AISuggestion>
+                    <FaLightbulb />
+                    <span>{aiEstimate.suggestion || aiEstimate.estimate?.rationale}</span>
+                  </AISuggestion>
+                )}
+              </>
+            )}
+          </AICard>
 
           <Error>{error}</Error>
 
