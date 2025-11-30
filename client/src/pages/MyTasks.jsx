@@ -35,7 +35,7 @@ const Title = styled.h1`
   font-size: 32px;
   font-weight: 800;
   letter-spacing: 0.3px;
-  background: linear-gradient(90deg, #0f172a 0%, #1d4ed8 55%, #6d28d9 100%);
+  background: linear-gradient(90deg, var(--text) 0%, var(--primary) 55%, #8b5cf6 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -49,39 +49,41 @@ const Tools = styled.div`
 
 const Input = styled.input`
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--card);
   backdrop-filter: blur(8px);
   border-radius: 12px;
   padding: 10px 14px;
   min-width: 240px;
   font-size: 14px;
+  color: var(--text);
   &:focus {
-    border-color: #94a3b8;
-    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.25);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
   }
 `
 
 const Select = styled.select`
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--card);
   backdrop-filter: blur(8px);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 14px;
+  color: var(--text);
   cursor: pointer;
   &:focus {
-    border-color: #94a3b8;
-    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.25);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
   }
 `
 
 const TableWrap = styled.div`
   overflow: hidden;
   border-radius: 16px;
-  border: 1px solid rgba(229, 231, 235, 0.9);
-  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--border);
+  background: var(--card);
   backdrop-filter: blur(10px);
-  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.08);
+  box-shadow: 0 18px 40px var(--shadow);
 `
 
 const Table = styled.table`
@@ -91,31 +93,32 @@ const Table = styled.table`
 `
 
 const Thead = styled.thead`
-  background: linear-gradient(180deg, rgba(248, 250, 252, 0.75), rgba(241, 245, 249, 0.9));
+  background: var(--surface-alt);
   th {
     text-align: left;
     padding: 14px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text);
   }
 `
 
 const Tbody = styled.tbody`
   td {
     padding: 14px;
-    border-top: 1px solid rgba(229, 231, 235, 0.7);
-    color: #0f172a;
+    border-top: 1px solid var(--border);
+    color: var(--text);
   }
   tr:hover td {
-    background: rgba(249, 250, 251, 0.55);
+    background: var(--surface-hover);
   }
 `
 
 const TaskTitle = styled(Link)`
-  color: #0f172a;
+  color: var(--text);
   font-weight: 600;
   text-decoration: none;
   &:hover {
+    color: var(--primary);
     text-decoration: underline;
   }
 `

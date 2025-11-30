@@ -29,9 +29,9 @@ const Checkbox = styled.label`
   display: inline-flex; gap: 8px; align-items: center; cursor: pointer;
   input { accent-color: #111827; }
 `
-const Title = styled.h1`margin: 6px 0 4px; font-size: 22px;`
+const Title = styled.h1`margin: 6px 0 4px; font-size: 22px; color: var(--text);`
 const Subtitle = styled.p`margin: 0 0 14px; font-size: 14px; color: var(--muted);`
-const Err = styled.div`color:#dc2626; font-size:12px; min-height:16px;`
+const Err = styled.div`color: var(--danger); font-size:12px; min-height:16px;`
 
 export default function Login() {
   const { login } = useAuth()
@@ -83,7 +83,7 @@ export default function Login() {
                   <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />
                   Remember me
                 </Checkbox>
-                <Link to="#" style={{ color:'#111827' }}>Forgot password?</Link>
+                <Link to="#" style={{ color: 'var(--primary)' }}>Forgot password?</Link>
               </Row>
 
               <Err>{error}</Err>

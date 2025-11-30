@@ -10,34 +10,12 @@ import {
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
 
-/* ===== Design Tokens ===== */
-const colors = {
-  bg: '#f1f5f9',
-  surface: '#ffffff',
-  surfaceHover: '#f8fafc',
-  border: '#e2e8f0',
-  borderLight: '#f1f5f9',
-  text: '#0f172a',
-  textSecondary: '#64748b',
-  textMuted: '#94a3b8',
-  primary: '#3b82f6',
-  primaryLight: '#eff6ff',
-  primaryGradient: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-  success: '#10b981',
-  successBg: '#ecfdf5',
-  warning: '#f59e0b',
-  warningBg: '#fffbeb',
-  danger: '#ef4444',
-  dangerBg: '#fef2f2',
-  purple: '#8b5cf6',
-  purpleBg: '#f5f3ff',
-}
-
+/* Column status colors - these are intentionally fixed for visual clarity */
 const columnColors = {
-  todo: { bg: '#f1f5f9', accent: '#64748b', label: 'To Do' },
-  in_progress: { bg: '#eff6ff', accent: '#3b82f6', label: 'In Progress' },
-  review: { bg: '#f5f3ff', accent: '#8b5cf6', label: 'In Review' },
-  done: { bg: '#ecfdf5', accent: '#10b981', label: 'Done' },
+  todo: { bg: 'var(--surface-alt)', accent: '#64748b', label: 'To Do' },
+  in_progress: { bg: 'var(--info-bg)', accent: '#3b82f6', label: 'In Progress' },
+  review: { bg: 'rgba(139, 92, 246, 0.1)', accent: '#8b5cf6', label: 'In Review' },
+  done: { bg: 'var(--success-bg)', accent: '#10b981', label: 'Done' },
 }
 
 /* ===== Layout ===== */
@@ -50,8 +28,8 @@ const PageContainer = styled.div`
 
 const Header = styled.div`
   padding: 24px 32px 16px;
-  background: #f8fafc;
-  border-bottom: 1px solid ${colors.border};
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 `
 
 const HeaderTop = styled.div`
@@ -71,7 +49,7 @@ const IconBadge = styled.div`
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: ${colors.primaryGradient};
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,13 +62,13 @@ const Title = styled.h1`
   margin: 0;
   font-size: 24px;
   font-weight: 800;
-  color: ${colors.text};
+  color: var(--text);
 `
 
 const Subtitle = styled.p`
   margin: 2px 0 0;
   font-size: 13px;
-  color: ${colors.textSecondary};
+  color: var(--text-secondary);
 `
 
 const HeaderActions = styled.div`
@@ -104,8 +82,8 @@ const SearchBox = styled.div`
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: ${colors.bg};
-  border: 1px solid ${colors.border};
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   border-radius: 8px;
   width: 240px;
   
@@ -114,16 +92,16 @@ const SearchBox = styled.div`
     border: none;
     background: transparent;
     font-size: 13px;
-    color: ${colors.text};
+    color: var(--text);
     outline: none;
     
     &::placeholder {
-      color: ${colors.textMuted};
+      color: var(--text-muted);
     }
   }
   
   svg {
-    color: ${colors.textMuted};
+    color: var(--text-muted);
     font-size: 14px;
   }
 `
@@ -133,9 +111,9 @@ const FilterButton = styled.button`
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  background: ${props => props.$active ? colors.primaryLight : 'white'};
-  color: ${props => props.$active ? colors.primary : colors.textSecondary};
-  border: 1px solid ${props => props.$active ? colors.primary : colors.border};
+  background: ${props => props.$active ? 'var(--primary-light)' : 'var(--card)'};
+  color: ${props => props.$active ? 'var(--primary)' : 'var(--text-secondary)'};
+  border: 1px solid ${props => props.$active ? 'var(--primary)' : 'var(--border)'};
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -143,8 +121,8 @@ const FilterButton = styled.button`
   transition: all 0.2s;
   
   &:hover {
-    background: ${colors.surfaceHover};
-    border-color: ${colors.primary};
+    background: var(--surface-hover);
+    border-color: var(--primary);
   }
 `
 
@@ -153,7 +131,7 @@ const AddButton = styled(Link)`
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: ${colors.primaryGradient};
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -184,9 +162,9 @@ const FilterChip = styled.button`
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: ${props => props.$active ? colors.primary : 'white'};
-  color: ${props => props.$active ? 'white' : colors.textSecondary};
-  border: 1px solid ${props => props.$active ? colors.primary : colors.border};
+  background: ${props => props.$active ? 'var(--primary)' : 'var(--card)'};
+  color: ${props => props.$active ? 'white' : 'var(--text-secondary)'};
+  border: 1px solid ${props => props.$active ? 'var(--primary)' : 'var(--border)'};
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
@@ -194,7 +172,7 @@ const FilterChip = styled.button`
   transition: all 0.2s;
   
   &:hover {
-    border-color: ${colors.primary};
+    border-color: var(--primary);
   }
 `
 
@@ -204,7 +182,7 @@ const ClearFilters = styled.button`
   gap: 4px;
   padding: 6px 10px;
   background: transparent;
-  color: ${colors.danger};
+  color: var(--danger);
   border: none;
   font-size: 12px;
   font-weight: 500;
@@ -222,7 +200,7 @@ const BoardContainer = styled.div`
   gap: 20px;
   padding: 24px 32px;
   overflow-x: auto;
-  background: ${colors.bg};
+  background: var(--bg);
 `
 
 const Column = styled.div`
@@ -299,37 +277,37 @@ const ColumnBody = styled.div`
   }
   
   &::-webkit-scrollbar-thumb {
-    background: ${colors.border};
+    background: var(--border);
     border-radius: 3px;
   }
 `
 
 const DropZone = styled.div`
   min-height: ${props => props.$isEmpty ? '120px' : '8px'};
-  border: 2px dashed ${props => props.$isDragOver ? colors.primary : 'transparent'};
+  border: 2px dashed ${props => props.$isDragOver ? 'var(--primary)' : 'transparent'};
   border-radius: 12px;
-  background: ${props => props.$isDragOver ? colors.primaryLight : 'transparent'};
+  background: ${props => props.$isDragOver ? 'var(--primary-light)' : 'transparent'};
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${colors.textMuted};
+  color: var(--text-muted);
   font-size: 13px;
 `
 
 /* ===== Task Card ===== */
 const TaskCard = styled(motion.div)`
-  background: white;
-  border: 1px solid ${colors.border};
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px;
   cursor: grab;
   transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 4px var(--shadow);
   
   &:hover {
-    border-color: ${colors.primary};
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px var(--shadow-strong);
     transform: translateY(-2px);
   }
   
@@ -354,7 +332,7 @@ const TaskHeader = styled.div`
 const TaskTitle = styled(Link)`
   font-size: 14px;
   font-weight: 600;
-  color: ${colors.text};
+  color: var(--text);
   text-decoration: none;
   line-height: 1.4;
   display: -webkit-box;
@@ -363,7 +341,7 @@ const TaskTitle = styled(Link)`
   overflow: hidden;
   
   &:hover {
-    color: ${colors.primary};
+    color: var(--primary);
   }
 `
 
@@ -381,13 +359,13 @@ const PriorityBadge = styled.span`
   ${props => {
     switch (props.$priority) {
       case 'critical':
-        return `background: ${colors.dangerBg}; color: ${colors.danger};`
+        return `background: var(--danger-bg); color: var(--danger);`
       case 'high':
-        return `background: ${colors.warningBg}; color: ${colors.warning};`
+        return `background: var(--warning-bg); color: var(--warning);`
       case 'medium':
-        return `background: ${colors.primaryLight}; color: ${colors.primary};`
+        return `background: var(--primary-light); color: var(--primary);`
       default:
-        return `background: ${colors.surfaceHover}; color: ${colors.textSecondary};`
+        return `background: var(--surface-hover); color: var(--text-secondary);`
     }
   }}
 `
@@ -405,7 +383,7 @@ const MetaItem = styled.span`
   align-items: center;
   gap: 5px;
   font-size: 11px;
-  color: ${colors.textMuted};
+  color: var(--text-muted);
   
   svg {
     font-size: 10px;
@@ -417,14 +395,14 @@ const TaskFooter = styled.div`
   align-items: center;
   justify-content: space-between;
   padding-top: 10px;
-  border-top: 1px solid ${colors.borderLight};
+  border-top: 1px solid var(--border);
 `
 
 const AssigneeAvatar = styled.div`
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: ${colors.primaryGradient};
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -442,14 +420,14 @@ const ConfidenceBadge = styled.div`
   font-size: 10px;
   font-weight: 600;
   background: ${props => {
-    if (props.$score >= 80) return colors.successBg
-    if (props.$score >= 50) return colors.warningBg
-    return colors.dangerBg
+    if (props.$score >= 80) return 'var(--success-bg)'
+    if (props.$score >= 50) return 'var(--warning-bg)'
+    return 'var(--danger-bg)'
   }};
   color: ${props => {
-    if (props.$score >= 80) return colors.success
-    if (props.$score >= 50) return colors.warning
-    return colors.danger
+    if (props.$score >= 80) return 'var(--success)'
+    if (props.$score >= 50) return 'var(--warning)'
+    return 'var(--danger)'
   }};
   
   svg {
@@ -465,7 +443,7 @@ const LoadingState = styled.div`
   justify-content: center;
   flex-direction: column;
   gap: 16px;
-  color: ${colors.textSecondary};
+  color: var(--text-secondary);
   
   svg {
     animation: spin 1s linear infinite;
@@ -480,7 +458,7 @@ const LoadingState = styled.div`
 const EmptyColumn = styled.div`
   text-align: center;
   padding: 24px 16px;
-  color: ${colors.textMuted};
+  color: var(--text-muted);
   font-size: 13px;
 `
 

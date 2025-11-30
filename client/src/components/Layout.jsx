@@ -1,21 +1,60 @@
 import styled from 'styled-components'
 import { Link } from 'react-router-dom'
-import { FaRobot, FaUsers, FaColumns, FaUsersCog } from 'react-icons/fa'
+import { FaRobot, FaUsers, FaColumns, FaUsersCog, FaMoon, FaSun, FaTools, FaExclamationTriangle } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
+import { useSettings } from '../context/SettingsContext'
 import Logo from './Logo'
 import Notifications from './Notifications'
+
 // src/components/Layout.jsx
 const Shell = styled.div`
   min-height: 100vh;
   position: relative;
-  background: #f8fafc;
+  background: var(--surface);
+  transition: background 0.3s ease;
 `
+
+const MaintenanceBanner = styled.div`
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  color: white;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  
+  svg {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+`
+
+const AIDisabledBanner = styled.div`
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  color: white;
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+`
+
 const Header = styled.header`
-  background: #f8fafc;
+  background: var(--surface);
   position: sticky;
   top: 0;
   z-index: 100;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s ease, border-color 0.3s ease;
 `
 
 
@@ -34,7 +73,7 @@ const HeaderInner = styled.div`
 
 const Brand = styled(Link)`
   display: inline-flex; align-items: center; gap: 10px;
-  text-decoration: none; color: #0f172a; font-weight: 800; letter-spacing: .2px;
+  text-decoration: none; color: var(--text); font-weight: 800; letter-spacing: .2px;
   &:hover { opacity: .9; }
 `
 
@@ -42,7 +81,7 @@ const Nav = styled.nav`
   display: flex; align-items: center; gap: 22px; font-size: 15px;
 
   a {
-    position: relative; color: #0f172a; font-weight: 600; text-decoration: none;
+    position: relative; color: var(--text); font-weight: 600; text-decoration: none;
     transition: color .2s ease;
   }
   a.nav-link::after {
@@ -50,18 +89,46 @@ const Nav = styled.nav`
     background: linear-gradient(90deg,#60a5fa,#a78bfa); opacity:0; transform:scaleX(0);
     transition: transform .25s ease, opacity .25s ease;
   }
-  a.nav-link:hover { color:#1d4ed8; }
+  a.nav-link:hover { color:#60a5fa; }
   a.nav-link:hover::after { opacity:1; transform:scaleX(1); }
 
   span { color: var(--muted); font-weight: 500; }
 `
 
 const LogoutButton = styled.button`
-  border: 1px solid rgba(255,255,255,0.55);
-  background: linear-gradient(145deg,#ffffff 0%,#f8fafc 100%);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
   border-radius: 12px; padding: 9px 14px; font-weight: 700; cursor: pointer;
   box-shadow: 0 2px 4px rgba(15,23,42,0.1); transition: all .2s ease;
   &:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,23,42,0.12); }
+`
+
+const ThemeToggle = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: var(--surface-alt);
+    transform: scale(1.05);
+  }
+  
+  svg {
+    transition: transform 0.3s ease;
+  }
+  
+  &:hover svg {
+    transform: rotate(15deg);
+  }
 `
 
 const NewTaskButton = styled(Link)`
@@ -98,14 +165,39 @@ const Main = styled.main`
   max-width: 100%;
   margin: 0 auto;
   padding: 0;
-  background: #f8fafc;
+  background: var(--surface);
+  transition: background 0.3s ease;
+`
+
+const Divider = styled.div`
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 4px;
 `
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
+  const { isDarkMode, toggleTheme } = useTheme()
+  const { isMaintenanceMode, isAIEnabled } = useSettings()
+  
+  const showMaintenanceBanner = isMaintenanceMode() && user?.role === 'admin'
+  const showAIDisabledBanner = !isAIEnabled() && user?.role === 'admin'
 
   return (
     <Shell>
+      {/* Admin warning banners */}
+      {showMaintenanceBanner && (
+        <MaintenanceBanner>
+          <FaTools /> Maintenance Mode Active - Only admins can access the system
+        </MaintenanceBanner>
+      )}
+      {showAIDisabledBanner && (
+        <AIDisabledBanner>
+          <FaExclamationTriangle /> AI Features Disabled - Users cannot access AI insights
+        </AIDisabledBanner>
+      )}
+      
       <Header>
         <Container>
           <HeaderInner>
@@ -120,9 +212,12 @@ export default function Layout({ children }) {
         <FaColumns size={14} /> Board
       </Link>
       <Link to="/projects" className="nav-link">Projects</Link>
-      <Link to="/ai" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <FaRobot size={14} /> AI Insights
-      </Link>
+      {/* Only show AI link if AI is enabled OR user is admin */}
+      {(isAIEnabled() || user.role === 'admin') && (
+        <Link to="/ai" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <FaRobot size={14} /> AI Insights
+        </Link>
+      )}
       {['manager', 'admin'].includes(user.role) && (
         <Link to="/manager" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <FaUsers size={14} /> Manager
@@ -134,16 +229,21 @@ export default function Layout({ children }) {
         </Link>
       )}
       
-      <div style={{ width: 1, height: 24, background: '#e2e8f0', margin: '0 4px' }} />
+      <Divider />
       
       <Notifications />
+
+      {/* Theme toggle */}
+      <ThemeToggle onClick={toggleTheme} title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+        {isDarkMode ? <FaSun size={16} /> : <FaMoon size={16} />}
+      </ThemeToggle>
 
       {/* Add new task button here */}
       <NewTaskButton to="/tasks/new">
         + New Task
       </NewTaskButton>
 
-      <div style={{ width: 1, height: 24, background: '#e2e8f0', margin: '0 4px' }} />
+      <Divider />
 
       <span>{user.name}</span>
       <LogoutButton onClick={logout}>Logout</LogoutButton>

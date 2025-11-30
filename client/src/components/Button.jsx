@@ -9,11 +9,15 @@ const Button = styled.button`
   border-radius: 12px;
   padding: 10px 14px;
   background: var(--primary);
-  color: var(--primary-contrast);
+  color: white;
+  font-weight: 600;
   transition: 0.18s ease;
   cursor: pointer;
 
-  &:hover { opacity: 0.93; transform: translateY(-1px); }
+  &:hover { 
+    background: var(--primary-hover); 
+    transform: translateY(-1px); 
+  }
   &:active { transform: translateY(0); }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 `

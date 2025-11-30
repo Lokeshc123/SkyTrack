@@ -10,24 +10,38 @@ const InputWrap = styled.div`
 `
 const Icon = styled.span`
   position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  font-size: 16px; color: #94a3b8;
+  font-size: 16px; color: var(--text-muted);
 `
 const BaseInput = styled.input`
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 10px 12px 10px 36px;
-  outline: none; background: #fff;
+  outline: none; 
+  background: var(--input-bg);
+  color: var(--text);
   transition: box-shadow .15s ease, border-color .15s ease;
-  &:focus { border-color: #94a3b8; box-shadow: 0 0 0 3px rgba(148,163,184,0.25); }
+  
+  &::placeholder {
+    color: var(--text-muted);
+  }
+  
+  &:focus { 
+    border-color: var(--primary); 
+    box-shadow: 0 0 0 3px var(--primary-light); 
+  }
 `
 const Toggle = styled.button`
   position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-  border: 0; background: transparent; color: #64748b; padding: 0; display: grid; place-items: center;
+  border: 0; background: transparent; color: var(--text-secondary); padding: 0; display: grid; place-items: center;
   cursor: pointer;
+  
+  &:hover {
+    color: var(--text);
+  }
 `
 const Error = styled.div`
-  color: #dc2626; font-size: 12px; min-height: 16px;
+  color: var(--danger); font-size: 12px; min-height: 16px;
 `
 
 export function EmailInput({ label='Email', value, onChange, error }) {

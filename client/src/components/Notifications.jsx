@@ -13,7 +13,7 @@ const BellLink = styled(Link)`
   border: none;
   cursor: pointer;
   position: relative;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 20px;
   width: 40px;
   height: 40px;
@@ -25,8 +25,8 @@ const BellLink = styled(Link)`
   text-decoration: none;
 
   &:hover {
-    background: rgba(15, 23, 42, 0.05);
-    color: #0f172a;
+    background: var(--surface-hover);
+    color: var(--text);
   }
   
   &:active {
@@ -48,7 +48,7 @@ const Badge = styled.span`
   text-align: center;
   line-height: 1.3;
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
-  border: 2px solid white;
+  border: 2px solid var(--surface);
 `
 
 export default function Notifications() {

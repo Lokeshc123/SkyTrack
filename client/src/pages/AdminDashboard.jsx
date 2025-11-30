@@ -5,33 +5,19 @@ import {
   FaUsersCog, FaUsers, FaUserPlus, FaUserEdit, FaTrash, FaSearch,
   FaChartBar, FaProjectDiagram, FaTasks, FaCheckCircle, FaClock,
   FaShieldAlt, FaCog, FaDatabase, FaRobot, FaExclamationTriangle,
-  FaTimes, FaCheck, FaEye, FaEyeSlash, FaSave, FaSync
+  FaTimes, FaCheck, FaEye, FaEyeSlash, FaSave, FaSync, FaMoon, FaSun,
+  FaBell, FaUserCog, FaCalendarCheck, FaTools
 } from 'react-icons/fa'
 import api from '../lib/api'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
+import { useSettings } from '../context/SettingsContext'
 
-/* ===== Design Tokens ===== */
+/* ===== Design Tokens - Using CSS variables for theme support ===== */
 const colors = {
-  bg: '#f8fafc',
-  surface: '#ffffff',
-  surfaceHover: '#f1f5f9',
-  border: '#e2e8f0',
-  borderLight: '#f1f5f9',
-  text: '#0f172a',
-  textSecondary: '#64748b',
-  textMuted: '#94a3b8',
-  primary: '#3b82f6',
-  primaryLight: '#eff6ff',
+  // These gradients are intentionally fixed
   primaryGradient: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
   adminGradient: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
-  success: '#10b981',
-  successBg: '#ecfdf5',
-  warning: '#f59e0b',
-  warningBg: '#fffbeb',
-  danger: '#ef4444',
-  dangerBg: '#fef2f2',
-  purple: '#8b5cf6',
-  purpleBg: '#f5f3ff',
 }
 
 /* ===== Layout ===== */
@@ -76,13 +62,13 @@ const Title = styled.h1`
   margin: 0;
   font-size: 28px;
   font-weight: 800;
-  color: ${colors.text};
+  color: var(--text);
 `
 
 const Subtitle = styled.p`
   margin: 4px 0 0;
   font-size: 14px;
-  color: ${colors.textSecondary};
+  color: var(--text-secondary);
 `
 
 /* ===== Tabs ===== */
@@ -90,7 +76,7 @@ const TabBar = styled.div`
   display: flex;
   gap: 4px;
   padding: 4px;
-  background: ${colors.surfaceHover};
+  background: var(--surface-alt);
   border-radius: 12px;
   margin-bottom: 24px;
   overflow-x: auto;
@@ -110,11 +96,11 @@ const Tab = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: ${props => props.$active ? '0 2px 8px rgba(0, 0, 0, 0.1)' : 'none'};
+  box-shadow: ${props => props.$active ? '0 2px 8px var(--shadow)' : 'none'};
   white-space: nowrap;
   
   &:hover:not([disabled]) {
-    color: ${colors.text};
+    color: var(--text);
   }
 `
 
@@ -135,8 +121,8 @@ const StatsGrid = styled.div`
 `
 
 const StatCard = styled(motion.div)`
-  background: ${colors.surface};
-  border: 1px solid ${colors.border};
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 20px;
   display: flex;
@@ -161,18 +147,18 @@ const StatInfo = styled.div``
 const StatValue = styled.div`
   font-size: 28px;
   font-weight: 800;
-  color: ${colors.text};
+  color: var(--text);
 `
 
 const StatLabel = styled.div`
   font-size: 13px;
-  color: ${colors.textSecondary};
+  color: var(--text-secondary);
 `
 
 /* ===== Card ===== */
 const Card = styled.div`
-  background: ${colors.surface};
-  border: 1px solid ${colors.border};
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 16px;
   overflow: hidden;
 `
@@ -182,20 +168,20 @@ const CardHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid ${colors.border};
+  border-bottom: 1px solid var(--border);
 `
 
 const CardTitle = styled.h3`
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: ${colors.text};
+  color: var(--text);
   display: flex;
   align-items: center;
   gap: 10px;
   
   svg {
-    color: ${colors.primary};
+    color: var(--primary);
   }
 `
 
@@ -215,8 +201,8 @@ const SearchInput = styled.div`
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: ${colors.bg};
-  border: 1px solid ${colors.border};
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   border-radius: 8px;
   width: 280px;
   
@@ -225,16 +211,16 @@ const SearchInput = styled.div`
     border: none;
     background: transparent;
     font-size: 13px;
-    color: ${colors.text};
+    color: var(--text);
     outline: none;
     
     &::placeholder {
-      color: ${colors.textMuted};
+      color: var(--text-muted);
     }
   }
   
   svg {
-    color: ${colors.textMuted};
+    color: var(--text-muted);
     font-size: 14px;
   }
 `
@@ -244,9 +230,9 @@ const ActionButton = styled.button`
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  background: ${props => props.$primary ? colors.primaryGradient : 'white'};
-  color: ${props => props.$primary ? 'white' : colors.textSecondary};
-  border: 1px solid ${props => props.$primary ? 'transparent' : colors.border};
+  background: ${props => props.$primary ? colors.primaryGradient : 'var(--card)'};
+  color: ${props => props.$primary ? 'white' : 'var(--text-secondary)'};
+  border: 1px solid ${props => props.$primary ? 'transparent' : 'var(--border)'};
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -255,7 +241,7 @@ const ActionButton = styled.button`
   
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px var(--shadow);
   }
   
   &:disabled {
@@ -276,18 +262,18 @@ const Th = styled.th`
   padding: 12px 16px;
   font-size: 12px;
   font-weight: 600;
-  color: ${colors.textSecondary};
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: ${colors.bg};
-  border-bottom: 1px solid ${colors.border};
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
 `
 
 const Td = styled.td`
   padding: 16px;
   font-size: 14px;
-  color: ${colors.text};
-  border-bottom: 1px solid ${colors.borderLight};
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
 `
 
@@ -295,7 +281,7 @@ const Tr = styled.tr`
   transition: background 0.2s;
   
   &:hover {
-    background: ${colors.surfaceHover};
+    background: var(--surface-hover);
   }
 `
 
@@ -320,12 +306,12 @@ const Avatar = styled.div`
 
 const UserName = styled.div`
   font-weight: 600;
-  color: ${colors.text};
+  color: var(--text);
 `
 
 const UserEmail = styled.div`
   font-size: 12px;
-  color: ${colors.textMuted};
+  color: var(--text-muted);
 `
 
 const RoleBadge = styled.span`
@@ -341,12 +327,12 @@ const RoleBadge = styled.span`
   ${props => {
     switch (props.$role) {
       case 'admin':
-        return `background: ${colors.dangerBg}; color: ${colors.danger};`
+        return `background: var(--danger-bg); color: var(--danger);`
       case 'manager':
-        return `background: ${colors.purpleBg}; color: ${colors.purple};`
+        return `background: #7c3aed20; color: #a855f7;`
       case 'dev':
       default:
-        return `background: ${colors.primaryLight}; color: ${colors.primary};`
+        return `background: var(--primary-light); color: var(--primary);`
     }
   }}
 `
@@ -356,13 +342,14 @@ const StatusDot = styled.span`
   align-items: center;
   gap: 6px;
   font-size: 13px;
+  color: var(--text);
   
   &::before {
     content: '';
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: ${props => props.$active ? colors.success : colors.textMuted};
+    background: ${props => props.$active ? 'var(--success)' : 'var(--text-muted)'};
   }
 `
 
@@ -376,9 +363,9 @@ const IconButton = styled.button`
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid ${colors.border};
-  background: white;
-  color: ${props => props.$danger ? colors.danger : colors.textSecondary};
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: ${props => props.$danger ? 'var(--danger)' : 'var(--text-secondary)'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -386,9 +373,9 @@ const IconButton = styled.button`
   transition: all 0.2s;
   
   &:hover {
-    background: ${props => props.$danger ? colors.dangerBg : colors.surfaceHover};
-    border-color: ${props => props.$danger ? colors.danger : colors.primary};
-    color: ${props => props.$danger ? colors.danger : colors.primary};
+    background: ${props => props.$danger ? 'var(--danger-bg)' : 'var(--surface-hover)'};
+    border-color: ${props => props.$danger ? 'var(--danger)' : 'var(--primary)'};
+    color: ${props => props.$danger ? 'var(--danger)' : 'var(--primary)'};
   }
 `
 
@@ -405,7 +392,7 @@ const ModalOverlay = styled(motion.div)`
 `
 
 const Modal = styled(motion.div)`
-  background: white;
+  background: var(--card);
   border-radius: 20px;
   width: 100%;
   max-width: 500px;
@@ -418,14 +405,14 @@ const ModalHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  border-bottom: 1px solid ${colors.border};
+  border-bottom: 1px solid var(--border);
 `
 
 const ModalTitle = styled.h3`
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: ${colors.text};
+  color: var(--text);
 `
 
 const CloseButton = styled.button`
@@ -433,15 +420,15 @@ const CloseButton = styled.button`
   height: 32px;
   border-radius: 8px;
   border: none;
-  background: ${colors.surfaceHover};
-  color: ${colors.textSecondary};
+  background: var(--surface-alt);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   
   &:hover {
-    background: ${colors.border};
+    background: var(--border);
   }
 `
 
@@ -457,40 +444,45 @@ const FormLabel = styled.label`
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: ${colors.text};
+  color: var(--text);
   margin-bottom: 8px;
 `
 
 const FormInput = styled.input`
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid ${colors.border};
+  border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 14px;
-  color: ${colors.text};
+  color: var(--text);
+  background: var(--input-bg);
   outline: none;
   transition: all 0.2s;
   
+  &::placeholder {
+    color: var(--text-muted);
+  }
+  
   &:focus {
-    border-color: ${colors.primary};
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
   }
 `
 
 const FormSelect = styled.select`
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid ${colors.border};
+  border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 14px;
-  color: ${colors.text};
+  color: var(--text);
   outline: none;
-  background: white;
+  background: var(--input-bg);
   cursor: pointer;
   
   &:focus {
-    border-color: ${colors.primary};
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
   }
 `
 
@@ -499,7 +491,7 @@ const ModalFooter = styled.div`
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
-  border-top: 1px solid ${colors.border};
+  border-top: 1px solid var(--border);
 `
 
 const Button = styled.button`
@@ -523,12 +515,12 @@ const Button = styled.button`
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
   ` : `
-    background: white;
-    color: ${colors.textSecondary};
-    border: 1px solid ${colors.border};
+    background: var(--card);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
     
     &:hover {
-      background: ${colors.surfaceHover};
+      background: var(--surface-hover);
     }
   `}
   
@@ -539,7 +531,7 @@ const Button = styled.button`
 `
 
 const DangerButton = styled(Button)`
-  background: ${colors.danger};
+  background: var(--danger);
   color: white;
   border: none;
   
@@ -559,7 +551,7 @@ const SettingItem = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 16px 0;
-  border-bottom: 1px solid ${colors.borderLight};
+  border-bottom: 1px solid var(--border);
   
   &:last-child {
     border-bottom: none;
@@ -571,13 +563,15 @@ const SettingInfo = styled.div``
 const SettingTitle = styled.div`
   font-size: 14px;
   font-weight: 600;
-  color: ${colors.text};
+  color: var(--text);
   margin-bottom: 4px;
+  display: flex;
+  align-items: center;
 `
 
 const SettingDesc = styled.div`
   font-size: 12px;
-  color: ${colors.textSecondary};
+  color: var(--text-secondary);
 `
 
 const Toggle = styled.button`
@@ -585,7 +579,7 @@ const Toggle = styled.button`
   height: 26px;
   border-radius: 13px;
   border: none;
-  background: ${props => props.$active ? colors.success : colors.border};
+  background: ${props => props.$active ? 'var(--success)' : 'var(--border)'};
   position: relative;
   cursor: pointer;
   transition: all 0.2s;
@@ -614,7 +608,7 @@ const ActivityItem = styled.div`
   display: flex;
   gap: 16px;
   padding: 16px 0;
-  border-bottom: 1px solid ${colors.borderLight};
+  border-bottom: 1px solid var(--border);
   
   &:last-child {
     border-bottom: none;
@@ -625,11 +619,11 @@ const ActivityIcon = styled.div`
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: ${props => props.$bg || colors.primaryLight};
+  background: ${props => props.$bg || 'var(--primary-light)'};
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${props => props.$color || colors.primary};
+  color: ${props => props.$color || 'var(--primary)'};
   font-size: 14px;
   flex-shrink: 0;
 `
@@ -640,7 +634,7 @@ const ActivityContent = styled.div`
 
 const ActivityText = styled.div`
   font-size: 14px;
-  color: ${colors.text};
+  color: var(--text);
   margin-bottom: 4px;
   
   strong {
@@ -650,7 +644,7 @@ const ActivityText = styled.div`
 
 const ActivityTime = styled.div`
   font-size: 12px;
-  color: ${colors.textMuted};
+  color: var(--text-muted);
 `
 
 /* ===== Empty & Loading ===== */
@@ -705,13 +699,21 @@ export default function AdminDashboard() {
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
   
-  // Settings states
-  const [settings, setSettings] = useState({
-    aiEnabled: true,
-    notificationsEnabled: true,
-    autoAssign: false,
-    dailyUpdatesRequired: true
-  })
+  // Theme
+  const { isDarkMode, toggleTheme } = useTheme()
+  
+  // Settings from context - shared across app
+  const { settings, updateSetting } = useSettings()
+  const [settingsSaved, setSettingsSaved] = useState(false)
+
+  // Save settings handler
+  const handleSettingChange = (key, value) => {
+    updateSetting(key, value)
+    
+    // Show saved indicator
+    setSettingsSaved(true)
+    setTimeout(() => setSettingsSaved(false), 2000)
+  }
 
   useEffect(() => {
     fetchData()
@@ -764,7 +766,7 @@ export default function AdminDashboard() {
   const getRoleColor = (role) => {
     switch (role) {
       case 'admin': return colors.adminGradient
-      case 'manager': return `linear-gradient(135deg, ${colors.purple} 0%, #a855f7 100%)`
+      case 'manager': return 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)'
       default: return colors.primaryGradient
     }
   }
@@ -1141,7 +1143,56 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
+            {/* Appearance Settings */}
             <Card>
+              <CardHeader>
+                <CardTitle>
+                  <FaSun /> Appearance
+                </CardTitle>
+                {settingsSaved && (
+                  <motion.span
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    style={{ 
+                      fontSize: 12, 
+                      color: colors.success, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 6 
+                    }}
+                  >
+                    <FaCheck /> Saved
+                  </motion.span>
+                )}
+              </CardHeader>
+              <CardBody>
+                <SettingsGrid>
+                  <SettingItem>
+                    <SettingInfo>
+                      <SettingTitle>
+                        {isDarkMode ? (
+                          <FaMoon style={{ marginRight: 8, color: '#6366f1' }} />
+                        ) : (
+                          <FaSun style={{ marginRight: 8, color: '#f59e0b' }} />
+                        )}
+                        Dark Mode
+                      </SettingTitle>
+                      <SettingDesc>
+                        Switch between light and dark theme for the interface
+                      </SettingDesc>
+                    </SettingInfo>
+                    <Toggle 
+                      $active={isDarkMode}
+                      onClick={toggleTheme}
+                    />
+                  </SettingItem>
+                </SettingsGrid>
+              </CardBody>
+            </Card>
+
+            {/* System Settings */}
+            <Card style={{ marginTop: 24 }}>
               <CardHeader>
                 <CardTitle>
                   <FaCog /> System Settings
@@ -1152,7 +1203,7 @@ export default function AdminDashboard() {
                   <SettingItem>
                     <SettingInfo>
                       <SettingTitle>
-                        <FaRobot style={{ marginRight: 8, color: colors.purple }} />
+                        <FaRobot style={{ marginRight: 8, color: '#8b5cf6' }} />
                         AI Features
                       </SettingTitle>
                       <SettingDesc>
@@ -1161,14 +1212,14 @@ export default function AdminDashboard() {
                     </SettingInfo>
                     <Toggle 
                       $active={settings.aiEnabled}
-                      onClick={() => setSettings(s => ({ ...s, aiEnabled: !s.aiEnabled }))}
+                      onClick={() => handleSettingChange('aiEnabled', !settings.aiEnabled)}
                     />
                   </SettingItem>
                   
                   <SettingItem>
                     <SettingInfo>
                       <SettingTitle>
-                        <FaExclamationTriangle style={{ marginRight: 8, color: colors.warning }} />
+                        <FaBell style={{ marginRight: 8, color: '#f59e0b' }} />
                         Notifications
                       </SettingTitle>
                       <SettingDesc>
@@ -1177,30 +1228,30 @@ export default function AdminDashboard() {
                     </SettingInfo>
                     <Toggle 
                       $active={settings.notificationsEnabled}
-                      onClick={() => setSettings(s => ({ ...s, notificationsEnabled: !s.notificationsEnabled }))}
+                      onClick={() => handleSettingChange('notificationsEnabled', !settings.notificationsEnabled)}
                     />
                   </SettingItem>
                   
                   <SettingItem>
                     <SettingInfo>
                       <SettingTitle>
-                        <FaUsers style={{ marginRight: 8, color: colors.primary }} />
+                        <FaUserCog style={{ marginRight: 8, color: '#3b82f6' }} />
                         Auto-Assign Tasks
                       </SettingTitle>
                       <SettingDesc>
-                        Automatically assign new tasks based on workload
+                        Automatically assign new tasks based on team workload
                       </SettingDesc>
                     </SettingInfo>
                     <Toggle 
                       $active={settings.autoAssign}
-                      onClick={() => setSettings(s => ({ ...s, autoAssign: !s.autoAssign }))}
+                      onClick={() => handleSettingChange('autoAssign', !settings.autoAssign)}
                     />
                   </SettingItem>
                   
                   <SettingItem>
                     <SettingInfo>
                       <SettingTitle>
-                        <FaClock style={{ marginRight: 8, color: colors.success }} />
+                        <FaCalendarCheck style={{ marginRight: 8, color: '#10b981' }} />
                         Daily Updates Required
                       </SettingTitle>
                       <SettingDesc>
@@ -1209,13 +1260,30 @@ export default function AdminDashboard() {
                     </SettingInfo>
                     <Toggle 
                       $active={settings.dailyUpdatesRequired}
-                      onClick={() => setSettings(s => ({ ...s, dailyUpdatesRequired: !s.dailyUpdatesRequired }))}
+                      onClick={() => handleSettingChange('dailyUpdatesRequired', !settings.dailyUpdatesRequired)}
+                    />
+                  </SettingItem>
+
+                  <SettingItem>
+                    <SettingInfo>
+                      <SettingTitle>
+                        <FaTools style={{ marginRight: 8, color: '#ef4444' }} />
+                        Maintenance Mode
+                      </SettingTitle>
+                      <SettingDesc>
+                        Put the system in maintenance mode (users can't make changes)
+                      </SettingDesc>
+                    </SettingInfo>
+                    <Toggle 
+                      $active={settings.maintenanceMode}
+                      onClick={() => handleSettingChange('maintenanceMode', !settings.maintenanceMode)}
                     />
                   </SettingItem>
                 </SettingsGrid>
               </CardBody>
             </Card>
 
+            {/* System Info */}
             <Card style={{ marginTop: 24 }}>
               <CardHeader>
                 <CardTitle>
@@ -1241,14 +1309,41 @@ export default function AdminDashboard() {
                       {settings.aiEnabled ? 'Active' : 'Disabled'}
                     </StatusDot>
                   </SettingItem>
+
+                  <SettingItem>
+                    <SettingInfo>
+                      <SettingTitle>Notifications Service</SettingTitle>
+                      <SettingDesc>In-app notification system</SettingDesc>
+                    </SettingInfo>
+                    <StatusDot $active={settings.notificationsEnabled}>
+                      {settings.notificationsEnabled ? 'Active' : 'Disabled'}
+                    </StatusDot>
+                  </SettingItem>
                   
                   <SettingItem>
                     <SettingInfo>
                       <SettingTitle>Storage Used</SettingTitle>
                       <SettingDesc>Total data storage consumed</SettingDesc>
                     </SettingInfo>
-                    <span style={{ fontWeight: 600, color: colors.text }}>
+                    <span style={{ fontWeight: 600, color: 'var(--text)' }}>
                       {((tasks.length * 2 + projects.length * 5 + users.length * 3) / 1000).toFixed(2)} MB
+                    </span>
+                  </SettingItem>
+
+                  <SettingItem>
+                    <SettingInfo>
+                      <SettingTitle>Current Theme</SettingTitle>
+                      <SettingDesc>Active interface theme</SettingDesc>
+                    </SettingInfo>
+                    <span style={{ 
+                      fontWeight: 600, 
+                      color: 'var(--text)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6
+                    }}>
+                      {isDarkMode ? <FaMoon /> : <FaSun />}
+                      {isDarkMode ? 'Dark' : 'Light'}
                     </span>
                   </SettingItem>
                 </SettingsGrid>
