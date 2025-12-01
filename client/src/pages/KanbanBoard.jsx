@@ -242,7 +242,7 @@ const ColumnName = styled.h3`
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: ${colors.text};
+  color: var(--text);
 `
 
 const TaskCount = styled.span`
@@ -252,8 +252,8 @@ const TaskCount = styled.span`
   min-width: 24px;
   height: 24px;
   padding: 0 8px;
-  background: ${props => columnColors[props.$status]?.accent || colors.textMuted}20;
-  color: ${props => columnColors[props.$status]?.accent || colors.textMuted};
+  background: ${props => columnColors[props.$status]?.accent || 'var(--text-muted)'}20;
+  color: ${props => columnColors[props.$status]?.accent || 'var(--text-muted)'};
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
